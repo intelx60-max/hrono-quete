@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>Chrono Quête 4e</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+/* Layout: one centred column; a night-blue "time machine" hero, then the frise, then the modes. One task per screen while playing. */
+:root{
+  --bg:#f2f0fa; --card:#ffffff; --ink:#1c1938; --muted:#6a6690;
+  --accent:#5b45e0; --accent-ink:#ffffff; --coral:#ff6b5a; --gold:#f5b335; --good:#19a56c; --bad:#e2464b;
+  --line:#e1ddf2; --soft:#ebe7fa;
+  --hero1:#1b1546; --hero2:#3b23a8; --hero-ink:#f6f3ff; --hero-muted:#b9b0ec;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --shadow:0 10px 30px -12px rgba(40,25,120,.25);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#110f24; --card:#1d1a3a; --ink:#f0eeff; --muted:#a39ecb;
+  --accent:#8f7dff; --accent-ink:#120f26; --coral:#ff8676; --gold:#ffc757; --good:#3ed293; --bad:#ff6a6f;
+  --line:#2f2b58; --soft:#262249; --hero1:#1a1442; --hero2:#3a24a6; --shadow:0 10px 30px -12px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#110f24; --card:#1d1a3a; --ink:#f0eeff; --muted:#a39ecb;
+  --accent:#8f7dff; --accent-ink:#120f26; --coral:#ff8676; --gold:#ffc757; --good:#3ed293; --bad:#ff6a6f;
+  --line:#2f2b58; --soft:#262249; --hero1:#1a1442; --hero2:#3a24a6; --shadow:0 10px 30px -12px rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 48px}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.015em}
+h2{font-size:1.3rem;font-weight:800}
+p{margin:0}
+.eyebrow{font-size:.74rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible,.flash:focus-visible{outline:3px solid var(--coral);outline-offset:3px}
+svg.ic{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* ---------- entrance motion ---------- */
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.in{animation:rise .6s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--d,0) * 70ms)}
+
+/* ---------- HERO ---------- */
+.hero{position:relative;overflow:hidden;border-radius:28px;color:var(--hero-ink);padding:26px 22px 22px;
+  background:radial-gradient(120% 90% at 100% 0%,var(--hero2) 0%,transparent 60%),linear-gradient(160deg,var(--hero1),#120d33);
+  box-shadow:var(--shadow);isolation:isolate}
+.hero::before,.hero::after{content:"";position:absolute;border-radius:50%;filter:blur(40px);z-index:-1;opacity:.55}
+.hero::before{width:220px;height:220px;background:#ff6b5a;top:-80px;left:-60px;animation:drift 12s ease-in-out infinite alternate}
+.hero::after{width:260px;height:260px;background:#6a4bff;bottom:-120px;right:-40px;animation:drift 15s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(60px,40px) scale(1.15)}}
+.stars{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.stars i{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw 3s ease-in-out infinite;opacity:.6}
+@keyframes tw{50%{opacity:.1}}
+.hero .hi{color:var(--hero-muted);font-weight:800;font-size:1rem;display:flex;gap:8px;align-items:center}
+.hero h1{font-size:clamp(2.3rem,9vw,3.4rem);font-weight:800;line-height:.98;margin-top:6px}
+.hero h1 .l{display:inline-block;animation:letter .7s cubic-bezier(.2,.9,.25,1.3) backwards;animation-delay:calc(var(--i)*45ms + 150ms)}
+@keyframes letter{from{opacity:0;transform:translateY(.6em) rotate(8deg)}}
+.hero h1 em{font-style:normal;color:#ffa08c}
+.hero .msg{margin-top:12px;color:var(--hero-muted);font-size:1.02rem;max-width:42ch}
+.hero .msg b{color:var(--hero-ink)}
+
+.lvl{margin-top:18px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.ringbox{display:flex;flex-direction:column;align-items:center;gap:5px}
+.ringbox small{font:900 .6rem var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--hero-muted);white-space:nowrap}
+.ring{position:relative;width:70px;height:70px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8}
+.ring .tr{stroke:rgba(255,255,255,.14)}
+.ring .fg{stroke:url(#ringGrad);stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1)}
+.ring span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.2rem;line-height:1;font-variant-numeric:tabular-nums}
+.lvl .who b{font-family:var(--display);font-size:1.2rem;display:block}
+.xpbar{height:10px;border-radius:6px;background:rgba(255,255,255,.14);margin-top:8px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,#ffb36b,#ff6b8a);transition:width 1.2s cubic-bezier(.2,.8,.2,1);position:relative}
+.xpbar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:sheen 2.4s infinite;transform:translateX(-100%)}
+@keyframes sheen{to{transform:translateX(100%)}}
+.lvl .sub{font-size:.85rem;color:var(--hero-muted);margin-top:4px;font-variant-numeric:tabular-nums}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.hchip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:6px 12px;font-weight:800;font-size:.88rem;font-variant-numeric:tabular-nums}
+.hchip .ic{width:17px;height:17px}
+.flame{color:#ffb36b}
+.flame.on svg{animation:flick 1.2s ease-in-out infinite}
+@keyframes flick{50%{transform:scale(1.12) rotate(-4deg)}}
+
+.play{margin-top:20px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:17px 20px;border-radius:18px;
+  background:linear-gradient(135deg,#ff8a5b,#ff5a7a);color:#fff;font-weight:900;font-size:1.15rem;position:relative;overflow:hidden;
+  box-shadow:0 12px 28px -10px rgba(255,90,122,.8);transition:transform .15s}
+.play:hover{transform:translateY(-2px) scale(1.01)}
+.play:active{transform:scale(.98)}
+.play::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{60%,100%{left:130%}}
+.play small{font-weight:700;opacity:.85;font-size:.85rem}
+
+/* ---------- sections ---------- */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:18px;box-shadow:var(--shadow)}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.head .eyebrow{font-size:.7rem}
+
+.fact{display:flex;gap:14px;align-items:flex-start}
+.fact .badge-ic{flex:none;width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--gold) 20%,var(--card));color:var(--gold)}
+.fact p{min-width:0}
+.fact .txt{transition:opacity .35s}
+
+/* frise */
+@keyframes popin{from{transform:scale(0)}}
+.eras{display:flex;flex-direction:column;gap:18px}
+.era{position:relative;padding-left:20px}
+.era::before{content:"";position:absolute;left:5px;top:10px;bottom:4px;width:3px;border-radius:2px;background:linear-gradient(var(--ec),color-mix(in srgb,var(--ec) 15%,transparent))}
+.era::after{content:"";position:absolute;left:0;top:4px;width:13px;height:13px;border-radius:50%;background:var(--ec);box-shadow:0 0 0 4px color-mix(in srgb,var(--ec) 22%,transparent)}
+.era-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.era-h b{font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--ec);line-height:1}
+.era-h b sup{font-size:.6em}
+.era-h span{font-size:.85rem;color:var(--muted);font-weight:700}
+.era-h em{margin-left:auto;font-style:normal;font-size:.78rem;font-weight:900;color:var(--muted);font-variant-numeric:tabular-nums}
+.evs{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}
+.ev{display:flex;flex-direction:column;gap:4px;text-align:left;padding:10px 12px;border-radius:14px;background:var(--soft);border:1px solid transparent;min-width:0;
+  transition:transform .15s,border-color .15s,background .15s;animation:rise .45s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--i)*35ms + 200ms)}
+.ev:hover{transform:translateY(-2px);border-color:var(--ec)}
+.ev .yr{font-family:var(--display);font-weight:800;font-size:1.05rem;line-height:1;font-variant-numeric:tabular-nums}
+.ev .nm{font-size:.82rem;line-height:1.2;font-weight:700;color:var(--muted)}
+.ev[data-m="4"],.ev[data-m="5"]{background:color-mix(in srgb,var(--good) 13%,var(--card));border-color:color-mix(in srgb,var(--good) 35%,transparent)}
+.ev[data-m="4"] .nm,.ev[data-m="5"] .nm{color:var(--ink)}
+.pips{display:flex;gap:3px;margin-top:2px}
+.pips i{width:100%;max-width:22px;height:4px;border-radius:2px;background:var(--line)}
+.pips i.on{background:var(--gold)}
+.ev[data-m="4"] .pips i.on,.ev[data-m="5"] .pips i.on{background:var(--good)}
+
+/* modes */
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:8px;
+  transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s,border-color .18s;box-shadow:var(--shadow)}
+.mode:hover{transform:translateY(-3px);border-color:var(--accent)}
+.mode:active{transform:scale(.98)}
+.mode .ico{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;background:var(--c)}
+.mode b{font-family:var(--display);font-size:1.05rem;line-height:1.15}
+.mode span{color:var(--muted);font-size:.85rem;line-height:1.3}
+.len{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.chip{border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-weight:800;font-size:.92rem;transition:background .15s}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* badges */
+.badges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bdg{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:12px 6px;border-radius:16px;background:var(--soft);min-width:0}
+.bdg .md{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:var(--line);color:var(--muted)}
+.bdg.on .md{background:linear-gradient(135deg,var(--gold),var(--coral));color:#fff;box-shadow:0 6px 16px -6px var(--coral)}
+.bdg b{font-size:.8rem;line-height:1.15}
+.bdg small{font-size:.7rem;color:var(--muted);line-height:1.2}
+.bdg:not(.on){opacity:.6}
+
+.foot{display:flex;justify-content:center;gap:18px;flex-wrap:wrap}
+.ghost{color:var(--muted);font-weight:700;text-decoration:underline;text-underline-offset:3px;font-size:.92rem}
+.row{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-weight:800;font-size:.9rem;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cta{background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:14px 18px;font-weight:900;font-size:1.05rem;text-align:center;transition:transform .12s}
+.cta:active{transform:scale(.98)}
+
+/* ---------- INTRO ---------- */
+.intro{position:fixed;inset:0;z-index:30;display:grid;place-items:center;overflow-y:auto;color:var(--hero-ink);
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px));
+  background:radial-gradient(100% 70% at 80% 0%,var(--hero2),transparent 65%),linear-gradient(170deg,var(--hero1),#0c0826)}
+.intro .box{max-width:460px;width:100%;display:flex;flex-direction:column;gap:18px}
+.intro h1{font-size:clamp(2.4rem,11vw,3.6rem);line-height:.95}
+.intro h1 em{font-style:normal;background:linear-gradient(90deg,#ffb36b,#ff6b8a,#b49bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.intro .lead{color:var(--hero-muted);font-size:1.1rem}
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:12px;align-items:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px 14px}
+.step .ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:var(--c);color:#fff;flex:none}
+.step b{display:block}
+.step span{color:var(--hero-muted);font-size:.9rem}
+.intro label{font-weight:800;font-size:.9rem;color:var(--hero-muted)}
+.intro input{width:100%;margin-top:6px;padding:14px 16px;border-radius:14px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.08);color:var(--hero-ink);font-size:1.1rem;font-weight:700}
+.intro input::placeholder{color:rgba(255,255,255,.4)}
+.intro .play{margin-top:0}
+
+/* ---------- PLAY ---------- */
+.bar{display:flex;gap:5px}
+.bar span{flex:1;height:8px;border-radius:4px;background:var(--line);transition:background .3s}
+.bar span.ok{background:var(--good)} .bar span.ko{background:var(--bad)} .bar span.now{background:var(--accent);animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.45}}
+.q{text-align:center;padding:28px 18px;display:flex;flex-direction:column;gap:10px;min-height:160px;justify-content:center;position:relative;overflow:hidden}
+.q .ask{color:var(--accent);font-weight:900;letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}
+.q .prompt{font-family:var(--display);font-weight:800;font-size:1.75rem;line-height:1.15;text-wrap:balance}
+.opts{display:grid;gap:10px}
+.opt{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px 16px;text-align:left;font-weight:800;font-size:1.05rem;min-height:60px;
+  transition:transform .12s,border-color .12s,background .2s;animation:rise .4s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:calc(var(--d)*60ms)}
+.opt:hover:not(:disabled){border-color:var(--accent);transform:translateX(3px)}
+.opt:active:not(:disabled){transform:scale(.98)}
+.opt kbd{flex:none;width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--soft);font:900 .85rem var(--body);color:var(--muted)}
+.opt.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 15%,var(--card));animation:bump .35s}
+.opt.ok kbd{background:var(--good);color:#fff}
+.opt.ko{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--card));animation:shake .35s}
+.opt.ko kbd{background:var(--bad);color:#fff}
+.opt:disabled{cursor:default}
+.opt.dim{opacity:.45}
+@keyframes bump{50%{transform:scale(1.03)}}
+@keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+.combo{text-align:center;font-family:var(--display);font-weight:800;color:var(--coral);min-height:1.5em;font-size:1.1rem}
+.combo.go{animation:pop .4s cubic-bezier(.2,.9,.3,1.6)}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.pop{animation:pop .3s cubic-bezier(.2,.9,.3,1.3)}
+.fb{border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:8px;border:2px solid;background:var(--card);animation:rise .35s cubic-bezier(.2,.8,.2,1)}
+.fb.ok{border-color:var(--good)} .fb.ko{border-color:var(--bad)}
+.fb strong{font-family:var(--display);font-size:1.2rem}
+.fb .tip{color:var(--muted);display:flex;gap:8px}
+.fb .tip .ic{width:18px;height:18px;color:var(--gold);margin-top:2px}
+.timer{height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.timer i{display:block;height:100%;background:var(--good);transform-origin:left;animation:shrink 2.4s linear forwards}
+@keyframes shrink{to{transform:scaleX(0)}}
+
+/* ---------- END ---------- */
+.end{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center;padding:26px 18px}
+.score{font-family:var(--display);font-weight:800;font-size:4.4rem;line-height:1;font-variant-numeric:tabular-nums}
+.endstars{display:flex;gap:8px}
+.endstars svg{width:42px;height:42px;fill:var(--line);animation:popin .5s cubic-bezier(.2,.9,.3,1.6) backwards}
+.endstars svg.on{fill:var(--gold)}
+.gain{font-weight:900;color:var(--coral);font-variant-numeric:tabular-nums;font-size:1.1rem}
+.review{text-align:left;width:100%;display:flex;flex-direction:column;gap:6px}
+.review div{background:var(--soft);border-radius:12px;padding:9px 12px;font-size:.92rem}
+.newb{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.newb .bdg{width:120px;opacity:1;animation:popin .5s cubic-bezier(.2,.9,.3,1.6) backwards .5s}
+
+/* ---------- CARDS ---------- */
+.flash{perspective:1000px;height:240px;cursor:pointer;border-radius:22px}
+.flash .inner{position:relative;width:100%;height:100%;transition:transform .55s cubic-bezier(.3,.8,.3,1);transform-style:preserve-3d}
+.flash.flip .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:10px;padding:20px;text-align:center;border:1px solid var(--line);background:var(--card);box-shadow:var(--shadow)}
+.face.back{transform:rotateY(180deg);background:linear-gradient(150deg,var(--hero2),var(--hero1));color:var(--hero-ink);border-color:transparent}
+.face .big{font-family:var(--display);font-weight:800;font-size:1.65rem;line-height:1.15;text-wrap:balance}
+.face small{opacity:.75;font-weight:800}
+.face .tipc{font-size:.9rem;color:var(--hero-muted);max-width:34ch}
+
+/* ---------- misc ---------- */
+.burst{position:fixed;pointer-events:none;width:9px;height:9px;border-radius:2px;z-index:40;animation:fly 1s cubic-bezier(.1,.7,.3,1) forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(540deg);opacity:0}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,140%);z-index:35;
+  background:linear-gradient(135deg,var(--hero2),var(--hero1));color:var(--hero-ink);border-radius:18px;padding:12px 18px;font-weight:800;
+  display:flex;gap:10px;align-items:center;box-shadow:0 16px 40px -10px rgba(0,0,0,.5);transition:transform .5s cubic-bezier(.2,.9,.3,1.3);max-width:calc(100% - 32px)}
+.toast.show{transform:translate(-50%,0)}
+.toast .ic{color:var(--gold)}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:440px){.q .prompt{font-size:1.45rem}.badges{grid-template-columns:repeat(2,1fr)}.mode{padding:12px}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb36b"/><stop offset="1" stop-color="#ff5a7a"/></linearGradient>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-q" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15m-4-4 4 4-4 4M20 16H5m4-4-4 4 4 4"/></symbol>
+    <symbol id="i-cards" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="15" rx="2"/><path d="M8 3h11a2 2 0 0 1 2 2v12"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7 1 2 2 3 3 3-1-3 0-6 0-8z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 .8-5.2 4.8 1.5 7L12 17.6 5.7 21l1.5-7L2 9.3l7-.8z"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.3h6c0-1 .4-1.8 1-2.3A7 7 0 0 0 12 2z"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="m3 7 4 4 5-7 5 7 4-4-2 12H5z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13-8z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  </defs>
+</svg>
+
+<!-- INTRO (premier lancement) -->
+<div class="intro" id="intro" hidden>
+  <div class="box">
+    <div class="eyebrow in" style="color:var(--hero-muted)">Histoire · 4e</div>
+    <h1 class="in" style="--d:1">Bienvenue dans <em>Chrono Quête</em></h1>
+    <p class="lead in" style="--d:2">19 dates, de l’Encyclopédie à 1905. Quelques minutes par jour, et elles rentrent toutes seules.</p>
+    <div class="steps">
+      <div class="step in" style="--d:3"><div class="ico" style="--c:#ff6b5a"><svg class="ic"><use href="#i-bolt"/></svg></div><div><b>Des parties de 5 questions</b><span>Courtes, sans chrono, sans stress.</span></div></div>
+      <div class="step in" style="--d:4"><div class="ico" style="--c:#6a4bff"><svg class="ic"><use href="#i-target"/></svg></div><div><b>Le jeu retient tes erreurs</b><span>Les dates difficiles reviennent plus souvent.</span></div></div>
+      <div class="step in" style="--d:5"><div class="ico" style="--c:#f5a623"><svg class="ic"><use href="#i-crown"/></svg></div><div><b>Monte en grade</b><span>De Citoyenne à Légende de la frise.</span></div></div>
+    </div>
+    <form id="introForm" class="in" style="--d:6;display:flex;flex-direction:column;gap:14px">
+      <label for="nameIn">Comment tu t’appelles ?<input id="nameIn" maxlength="20" autocomplete="given-name" placeholder="Ton prénom"></label>
+      <button class="play" type="submit"><svg class="ic"><use href="#i-play"/></svg>C’est parti</button>
+    </form>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- HOME -->
+  <section id="home" class="wrap">
+    <header class="hero in">
+      <div class="stars" id="stars"></div>
+      <div class="hi" id="greet"></div>
+      <h1 id="title"></h1>
+      <p class="msg" id="msg"></p>
+
+      <div class="lvl">
+        <div class="ringbox" title="Objectif du jour : 2 parties">
+          <div class="ring">
+            <svg viewBox="0 0 80 80"><circle class="tr" cx="40" cy="40" r="34"/><circle class="fg" id="ringFg" cx="40" cy="40" r="34" stroke-dasharray="213.6" stroke-dashoffset="213.6"/></svg>
+            <span id="ringTxt">0/2</span>
+          </div>
+          <small>Aujourd’hui</small>
+        </div>
+        <div class="who">
+          <b id="rank"></b>
+          <div class="xpbar"><i id="xpFill"></i></div>
+          <div class="sub" id="xpSub"></div>
+        </div>
+      </div>
+
+      <div class="chips">
+        <span class="hchip flame" id="streakChip"><svg class="ic"><use href="#i-flame"/></svg><span id="streakTxt"></span></span>
+        <span class="hchip"><svg class="ic"><use href="#i-check"/></svg><span id="masterTxt"></span></span>
+        <span class="hchip"><svg class="ic"><use href="#i-star"/></svg><span id="xpTxt"></span></span>
+      </div>
+
+      <button class="play" id="bigPlay"><svg class="ic"><use href="#i-play"/></svg><span>Lancer une partie</span><small id="playLen"></small></button>
+    </header>
+
+    <div class="panel fact in" style="--d:2">
+      <div class="badge-ic"><svg class="ic"><use href="#i-bulb"/></svg></div>
+      <p><span class="eyebrow">Astuce mémoire</span><br><span class="txt" id="factTxt"></span></p>
+    </div>
+
+    <div class="panel in" style="--d:3">
+      <div class="head"><h2>Ta frise</h2><span class="eyebrow">Touche une date pour la revoir</span></div>
+      <div class="eras" id="eras"></div>
+    </div>
+
+    <div class="in" style="--d:4">
+      <div class="head"><h2>Choisis ton défi</h2>
+        <div class="len" style="margin:0"><button class="chip" id="len5" aria-pressed="true">5 questions</button><button class="chip" id="len10" aria-pressed="false">10</button></div>
+      </div>
+      <div class="modes">
+        <button class="mode" data-mode="date"><div class="ico" style="--c:#ff6b5a"><svg class="ic"><use href="#i-cal"/></svg></div><b>Trouve la date</b><span>Un événement, quatre dates.</span></button>
+        <button class="mode" data-mode="evt"><div class="ico" style="--c:#6a4bff"><svg class="ic"><use href="#i-q"/></svg></div><b>Trouve l’événement</b><span>Une date, quatre événements.</span></button>
+        <button class="mode" data-mode="siecle"><div class="ico" style="--c:#14a8a0"><svg class="ic"><use href="#i-layers"/></svg></div><b>Quel siècle ?</b><span>XVIIIe (18e), XIXe (19e) ou XXe (20e).</span></button>
+        <button class="mode" data-mode="avant"><div class="ico" style="--c:#f5a623"><svg class="ic"><use href="#i-swap"/></svg></div><b>Avant ou après</b><span>Remets les événements dans l’ordre.</span></button>
+        <button class="mode" id="mWeak"><div class="ico" style="--c:#e2464b"><svg class="ic"><use href="#i-target"/></svg></div><b>Mes points faibles</b><span>Seulement ce qui coince.</span></button>
+        <button class="mode" id="mCards"><div class="ico" style="--c:#3b23a8"><svg class="ic"><use href="#i-cards"/></svg></div><b>Cartes mémoire</b><span>Retourne-les à ton rythme.</span></button>
+      </div>
+    </div>
+
+    <div class="panel in" style="--d:5">
+      <div class="head"><h2>Trophées</h2><span class="eyebrow" id="bdgCount"></span></div>
+      <div class="badges" id="badges"></div>
+    </div>
+
+    <div class="foot">
+      <button class="ghost" id="rename">Changer de prénom</button>
+      <button class="ghost" id="reset">Remettre à zéro</button>
+    </div>
+    <div id="confirmReset" class="panel row" hidden>
+      <span>Effacer toute la progression ?</span>
+      <span class="row"><button class="ghost" id="resetNo">Non</button><button class="cta" id="resetYes" style="padding:8px 14px">Oui, effacer</button></span>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section id="play" class="wrap" hidden>
+    <div class="row">
+      <button class="ghost" id="quit">← Quitter</button>
+      <span class="pill" id="xpPlay">0 XP</span>
+    </div>
+    <div class="bar" id="bar"></div>
+    <div class="panel q" id="qBox">
+      <div class="ask" id="ask"></div>
+      <div class="prompt" id="prompt"></div>
+    </div>
+    <div class="opts" id="opts"></div>
+    <div class="combo" id="combo"></div>
+    <div id="fb" hidden></div>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="wrap" hidden>
+    <div class="panel end">
+      <div class="eyebrow">Partie terminée</div>
+      <div class="endstars" id="endStars"></div>
+      <div class="score" id="endScore"></div>
+      <h2 id="endMsg"></h2>
+      <div class="gain" id="endGain"></div>
+      <div class="newb" id="newBadges"></div>
+      <div class="review" id="review"></div>
+    </div>
+    <button class="play" id="again" style="margin-top:0"><svg class="ic"><use href="#i-play"/></svg>Encore une partie</button>
+    <button class="ghost" id="toHome" style="align-self:center">Retour à l’accueil</button>
+  </section>
+
+  <!-- CARDS -->
+  <section id="cards" class="wrap" hidden>
+    <div class="row">
+      <button class="ghost" id="cardsQuit">← Retour</button>
+      <span class="pill" id="cardNum"></span>
+    </div>
+    <div class="flash" id="flash" tabindex="0" role="button" aria-label="Retourner la carte">
+      <div class="inner">
+        <div class="face"><small>Touche pour retourner</small><div class="big" id="cFront"></div></div>
+        <div class="face back"><div class="big" id="cBack"></div><small id="cBack2"></small><div class="tipc" id="cTip"></div></div>
+      </div>
+    </div>
+    <div class="row">
+      <button class="cta" id="cPrev" style="flex:1;background:var(--soft);color:var(--ink)">← Avant</button>
+      <button class="cta" id="cNext" style="flex:1">Suivante →</button>
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.9rem">Les cartes suivent l’ordre de la frise.</p>
+  </section>
+</div>
+
+<div class="toast" id="toast" role="status"><svg class="ic"><use href="#i-crown"/></svg><span id="toastTxt"></span></div>
+
+<script>
+const D=[
+ {e:"Âge de l’Encyclopédie",n:"Encyclopédie",yr:"1750+",d:"2e moitié du XVIIIe siècle",s:"XVIIIe",p:"Temps modernes",y:1751,t:"Diderot et d’Alembert : le grand livre des Lumières."},
+ {e:"Déclaration d’indépendance des États-Unis",n:"Indépendance USA",yr:"1776",d:"4 juillet 1776",s:"XVIIIe",p:"Temps modernes",y:1776.5,t:"Le 4 juillet, c’est la fête nationale américaine."},
+ {e:"Révolution française",n:"Révolution",yr:"1789",d:"1789 – 1799",s:"XVIIIe",p:"Époque contemporaine",y:1789,t:"Elle dure 10 ans et ouvre l’époque contemporaine."},
+ {e:"Prise de la Bastille",n:"Bastille",yr:"1789",d:"14 juillet 1789",s:"XVIIIe",p:"Époque contemporaine",y:1789.53,t:"Le 14 juillet, c’est notre fête nationale."},
+ {e:"Déclaration des droits de l’Homme et du Citoyen",n:"DDHC",yr:"1789",d:"26 août 1789",s:"XVIIIe",p:"Époque contemporaine",y:1789.65,t:"Six semaines après la Bastille, le même été."},
+ {e:"Ire République",n:"Ire République",yr:"1792",d:"1792 – 1804",s:"XVIIIe – XIXe",p:"Époque contemporaine",y:1792,t:"Fin de la monarchie en 1792. Elle est à cheval sur deux siècles."},
+ {e:"Consulat",n:"Consulat",yr:"1799",d:"1799 – 1804",s:"XVIIIe – XIXe",p:"Époque contemporaine",y:1799,t:"Bonaparte prend le pouvoir l’année où la Révolution se termine."},
+ {e:"Couronnement impérial de Napoléon",n:"Sacre",yr:"1804",d:"2 décembre 1804",s:"XIXe",p:"Époque contemporaine",y:1804.92,t:"Retiens le 2 décembre : il revient un an plus tard pour Austerlitz."},
+ {e:"Ier Empire – Napoléon Ier",n:"Ier Empire",yr:"1804",d:"1804 – 1815",s:"XIXe",p:"Époque contemporaine",y:1804,t:"Du sacre (1804) à Waterloo (1815)."},
+ {e:"Victoire d’Austerlitz",n:"Austerlitz",yr:"1805",d:"2 décembre 1805",s:"XIXe",p:"Époque contemporaine",y:1805.92,t:"Un an jour pour jour après le sacre."},
+ {e:"Défaite de Waterloo et congrès de Vienne",n:"Waterloo",yr:"1815",d:"1815",s:"XIXe",p:"Époque contemporaine",y:1815,t:"La fin du Ier Empire."},
+ {e:"Monarchie constitutionnelle",n:"Monarchie const.",yr:"1815",d:"1815 – 1848",s:"XIXe",p:"Époque contemporaine",y:1815.5,t:"Les rois reviennent après Napoléon, jusqu’en 1848."},
+ {e:"IIe République",n:"IIe République",yr:"1848",d:"1848 – 1852",s:"XIXe",p:"Époque contemporaine",y:1848,t:"La plus courte : 4 ans seulement."},
+ {e:"Abolition de l’esclavage",n:"Fin de l’esclavage",yr:"1848",d:"1848",s:"XIXe",p:"Époque contemporaine",y:1848.3,t:"Décidée par la IIe République, l’année même où elle naît."},
+ {e:"IIe Empire – Napoléon III",n:"IIe Empire",yr:"1852",d:"1852 – 1870",s:"XIXe",p:"Époque contemporaine",y:1852,t:"Napoléon III est le neveu de Napoléon Ier."},
+ {e:"IIIe République",n:"IIIe République",yr:"1870",d:"1870 – 1940",s:"XIXe – XXe",p:"Époque contemporaine",y:1870,t:"La plus longue : 70 ans."},
+ {e:"Lois Ferry (école gratuite, laïque et obligatoire)",n:"Lois Ferry",yr:"1882",d:"1882 – 1886",s:"XIXe",p:"Époque contemporaine",y:1882,t:"Jules Ferry, sous la IIIe République."},
+ {e:"Affaire Dreyfus",n:"Dreyfus",yr:"1894",d:"1894 – 1906",s:"XIXe – XXe",p:"Époque contemporaine",y:1894,t:"12 ans d’affaire, à cheval sur deux siècles."},
+ {e:"Loi de séparation des Églises et de l’État",n:"Laïcité",yr:"1905",d:"1905",s:"XXe",p:"Époque contemporaine",y:1905,t:"La laïcité de l’État, juste avant la fin de l’affaire Dreyfus."}
+];
+const CENT=["XVIIIe","XVIIIe – XIXe","XIXe","XIXe – XXe","XXe"];
+const YAY=["Bien joué !","Exact !","Trop forte !","Oui !","Parfait !","Bravo !","Ça rentre !","Impeccable !"];
+const SOFT=["Pas grave, retiens ça :","Presque ! La bonne réponse :","On la garde pour plus tard :"];
+const MSGS=[
+ "Prête pour un petit voyage dans le temps ? <b>5 questions</b> et c’est plié.",
+ "Napoléon n’a pas conquis l’Europe en un jour. Toi, tu as juste <b>5 questions</b> à faire.",
+ "Une partie, c’est moins de <b>2 minutes</b>. Allez, une seule !",
+ "Chaque bonne réponse fait avancer ta frise. <b>On la complète ?</b>"
+];
+const TH=[0,150,400,800,1400,2200,3200];
+const RANKS=["Citoyenne","Encyclopédiste","Révolutionnaire","Consule","Impératrice","Ministre de l’Histoire","Légende de la frise"];
+const GOAL=2;
+const BADGES=[
+ {id:"first",n:"Premier pas",h:"Finir une partie",ic:"i-play",ok:s=>s.games>=1},
+ {id:"perfect",n:"Sans faute",h:"Tout juste sur une partie",ic:"i-star",ok:s=>s.perfect>=1},
+ {id:"combo",n:"En feu",h:"Série de 5 bonnes réponses",ic:"i-flame",ok:s=>s.bestCombo>=5},
+ {id:"half",n:"Mi-parcours",h:"10 dates maîtrisées",ic:"i-check",ok:s=>mastered()>=10},
+ {id:"days",n:"Régulière",h:"Jouer 3 jours d’affilée",ic:"i-cal",ok:s=>s.streak>=3},
+ {id:"all",n:"Reine de la frise",h:"Les 19 dates maîtrisées",ic:"i-crown",ok:s=>mastered()>=19}
+];
+const KEY="chronoquete-4e-v1";
+
+let S={m:{},xp:0};
+try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r&&r.m)S=r}catch(e){}
+S=Object.assign({name:"",games:0,perfect:0,bestCombo:0,streak:0,lastDay:"",today:"",todayGames:0,len:5,badges:[]},S);
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const M=i=>S.m[i]||0;
+const mastered=()=>D.filter((_,i)=>M(i)>=4).length;
+const $=id=>document.getElementById(id);
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const near=(i,n,f=()=>true)=>shuffle(D.map((_,k)=>k).filter(k=>k!==i&&f(k)).sort((a,b)=>Math.abs(D[a].y-D[i].y)-Math.abs(D[b].y-D[i].y)).slice(0,9)).slice(0,n);
+/* Chiffres romains → on ajoute le chiffre normal entre parenthèses. */
+const ROM={XVIIIe:"18e",XIXe:"19e",XXe:"20e",Ire:"1re",Ier:"1er",IIe:"2e",IIIe:"3e"};
+const fmt=s=>String(s).replace(/(^|[^\wÀ-ÿ])(XVIIIe|XIXe|XXe|Ire|Ier|IIe|IIIe)(?![\wÀ-ÿ])/g,(m,p,r)=>`${p}${r} (${ROM[r]})`).replace(/Napoléon III(?![\wÀ-ÿ])/g,"Napoléon III (3)");
+const dayKey=(o=0)=>{const d=new Date();d.setDate(d.getDate()+o);return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate()};
+const lvl=xp=>{let k=0;while(k<TH.length-1&&xp>=TH[k+1])k++;return k};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function show(id){for(const s of["home","play","end","cards"])$(s).hidden=s!==id;window.scrollTo(0,0)}
+
+/* ---------- accueil ---------- */
+(function stars(){let h="";for(let k=0;k<40;k++)h+=`<i style="left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*3).toFixed(2)}s;opacity:${(.2+Math.random()*.6).toFixed(2)}"></i>`;$("stars").innerHTML=h})();
+
+function splitTitle(){
+  const t="Chrono Quête";
+  $("title").innerHTML=[...t].map((c,i)=>c===" "?" ":`<span class="l" style="--i:${i}">${c}</span>`).join("").replace(/(<span class="l" style="--i:7">.*)$/,"<em>$1</em>");
+}
+
+let factI=Math.random()*D.length|0,factTimer=null;
+function rotateFact(){
+  const el=$("factTxt");el.style.opacity=0;
+  setTimeout(()=>{const x=D[factI];el.innerHTML=`<b>${esc(fmt(x.n))} (${esc(x.yr)})</b> · ${esc(fmt(x.t))}`;el.style.opacity=1;factI=(factI+1)%D.length},reduced()?0:350);
+}
+
+function renderHome(){
+  if(S.today!==dayKey()){S.today=dayKey();S.todayGames=0;save()}
+  const h=new Date().getHours();
+  const hello=h<5?"Encore debout":h<18?"Salut":"Bonsoir";
+  $("greet").textContent=S.name?`${hello} ${S.name} !`:`${hello} !`;
+  splitTitle();
+  const streakAlive=S.lastDay===dayKey()||S.lastDay===dayKey(-1);
+  let msg;
+  if(S.games===0)msg="Ta frise est vide pour l’instant. Lance ta <b>première partie</b>, ça prend 2 minutes.";
+  else if(S.todayGames>=GOAL)msg="Objectif du jour atteint. <b>Tu gères.</b> Une partie bonus pour la route ?";
+  else if(streakAlive&&S.streak>=2&&S.lastDay!==dayKey())msg=`Ta série de <b>${S.streak} jours</b> t’attend. Une partie pour la garder !`;
+  else msg=MSGS[Math.random()*MSGS.length|0].replace("5 questions",S.len+" questions");
+  $("msg").innerHTML=msg;
+
+  const L=lvl(S.xp),lo=TH[L],hi=TH[L+1];
+  $("rank").textContent=`Niveau ${L+1} · ${RANKS[L]}`;
+  $("xpSub").textContent=hi?`${S.xp-lo} / ${hi-lo} XP avant « ${RANKS[L+1]} »`:"Niveau maximum atteint !";
+  $("xpFill").style.width="0";
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{$("xpFill").style.width=(hi?(S.xp-lo)/(hi-lo)*100:100)+"%";
+    $("ringFg").style.strokeDashoffset=213.6*(1-Math.min(1,S.todayGames/GOAL))}));
+  $("ringTxt").textContent=`${Math.min(S.todayGames,GOAL)}/${GOAL}`;
+  const st=streakAlive?S.streak:0;
+  $("streakTxt").textContent=st?`${st} jour${st>1?"s":""} d’affilée`:"Pas encore de série";
+  $("streakChip").classList.toggle("on",st>0);
+  $("masterTxt").textContent=`${mastered()}/19 maîtrisées`;
+  $("xpTxt").textContent=`${S.xp} XP`;
+  $("playLen").textContent=`· ${S.len} questions`;
+
+  const ERAS=[{r:"XVIII",a:"18",span:"1701 – 1800",c:"#ff6b5a",f:y=>y<1801},{r:"XIX",a:"19",span:"1801 – 1900",c:"#7a5cff",f:y=>y>=1801&&y<1901},{r:"XX",a:"20",span:"1901 – 2000",c:"#14a8a0",f:y=>y>=1901}];
+  $("eras").innerHTML=ERAS.map(E=>{
+    const ids=D.map((_,i)=>i).filter(i=>E.f(D[i].y));
+    const done=ids.filter(i=>M(i)>=4).length;
+    return `<div class="era" style="--ec:${E.c}"><div class="era-h"><b>${E.r}<sup>e</sup> siècle</b><span>${E.a}<sup>e</sup> siècle · ${E.span}</span><em>${done}/${ids.length} ✓</em></div><div class="evs">`+
+      ids.map(i=>`<button class="ev" data-i="${i}" data-m="${M(i)}" style="--i:${i};--ec:${E.c}"><span class="yr">${esc(D[i].yr)}</span><span class="nm">${esc(fmt(D[i].n))}</span><span class="pips">${[0,1,2,3,4].map(k=>`<i class="${k<M(i)?"on":""}"></i>`).join("")}</span></button>`).join("")+`</div></div>`;
+  }).join("");
+  $("eras").querySelectorAll(".ev").forEach(b=>b.onclick=()=>openCards(+b.dataset.i));
+
+  $("badges").innerHTML=BADGES.map(b=>{const on=b.ok(S);return `<div class="bdg${on?" on":""}"><div class="md"><svg class="ic"><use href="#${on?b.ic:"i-lock"}"/></svg></div><b>${b.n}</b><small>${b.h}</small></div>`}).join("");
+  $("bdgCount").textContent=`${BADGES.filter(b=>b.ok(S)).length} / ${BADGES.length}`;
+  $("len5").setAttribute("aria-pressed",S.len===5);$("len10").setAttribute("aria-pressed",S.len===10);
+
+  rotateFact();clearInterval(factTimer);factTimer=setInterval(rotateFact,7000);
+  show("home");
+}
+
+/* ---------- questions ---------- */
+/* Pioche : un paquet mélangé des 19 dates (+ un exemplaire en plus pour celles pas encore sues).
+   On passe tout le paquet avant de recommencer, même d'une partie à l'autre : chaque date finit par tomber. */
+function drawIdx(pool,used){
+  if(pool){const free=pool.filter(i=>!used.has(i));const p=free.length?free:pool;return p[Math.random()*p.length|0]}
+  if(!Array.isArray(S.deck))S.deck=[];
+  for(let t=0;t<60;t++){
+    if(!S.deck.length){const base=D.map((_,i)=>i);S.deck=shuffle(base.concat(base.filter(i=>M(i)<=2)))}
+    const i=S.deck.shift();
+    if(!used.has(i)){save();return i}
+    S.deck.push(i);
+  }
+  return Math.random()*D.length|0;
+}
+const RANGE=s=>{const m=/(\d{4}) – (\d{4})/.exec(s);return m?+m[2]-+m[1]:null};
+/* Régimes, avec des années « sûres » à demander (sans chevauchement). */
+const REG={5:[1793,1798],6:[1800,1803],8:[1805,1814],11:[1816,1847],12:[1849,1851],14:[1853,1869],15:[1871,1914]};
+function makeQ(mode,pool,used){
+  const i=drawIdx(pool,used);used.add(i);
+  const x=D[i];
+  if(mode==="mix"){
+    const ok=["date","date","evt","evt","siecle","avant","vf"];
+    if(Math.random()<.4)ok.push("periode");
+    if(REG[i])ok.push("regime","regime");
+    if(RANGE(x.d)!==null)ok.push("duree");
+    const c=ok.filter(m=>m!==G.lastMode);mode=c[Math.random()*c.length|0];
+  }
+  G.lastMode=mode;
+  if(mode==="date")return{i,ask:"C’est quand ?",prompt:x.e,opts:shuffle([{l:x.d,ok:1},...near(i,3).map(k=>({l:D[k].d}))])};
+  if(mode==="evt")return{i,ask:"Qu’est-ce qui s’est passé ?",prompt:x.d,opts:shuffle([{l:x.e,ok:1},...near(i,3).map(k=>({l:D[k].e}))])};
+  if(mode==="vf"){
+    const truth=Math.random()<.5,fake=D[near(i,1,k=>D[k].d!==x.d)[0]].d;
+    return{i,ask:"Vrai ou faux ?",prompt:`${x.e} : ${truth?x.d:fake}`,opts:[{l:"Vrai",ok:truth},{l:"Faux",ok:!truth}]};
+  }
+  if(mode==="regime"){
+    const [a,b]=REG[i],yr=a+(Math.random()*(b-a+1)|0);
+    const others=shuffle(Object.keys(REG).map(Number).filter(k=>k!==i)).slice(0,3);
+    return{i,ask:"Qui gouverne ?",prompt:`Nous sommes en ${yr}. Quel régime gouverne la France ?`,opts:shuffle([{l:x.e,ok:1},...others.map(k=>({l:D[k].e}))])};
+  }
+  if(mode==="duree"){
+    const n=RANGE(x.d),cand=[...new Set(D.map(z=>RANGE(z.d)).filter(v=>v!==null).concat([n+2,n+5,Math.max(1,n-3)]))].filter(v=>v!==n);
+    const pl=v=>v+(v>1?" ans":" an");
+    return{i,ask:"Combien de temps ?",prompt:`Combien de temps a duré : ${x.e} ?`,opts:shuffle([{l:pl(n),ok:1},...shuffle(cand).slice(0,3).map(v=>({l:pl(v)}))]),extra:`${x.d}, soit ${pl(n)}. ${x.t}`};
+  }
+  if(mode==="siecle")return{i,ask:"Quel siècle ?",prompt:x.e,opts:shuffle([x.s,...shuffle(CENT.filter(c=>c!==x.s)).slice(0,3)]).sort((a,b)=>CENT.indexOf(a)-CENT.indexOf(b)).map(c=>({l:c+" siècle",ok:c===x.s}))};
+  if(mode==="periode")return{i,ask:"Quelle période historique ?",prompt:x.e,opts:["Temps modernes","Époque contemporaine"].map(p=>({l:p,ok:p===x.p})),extra:"L’époque contemporaine commence en 1789, avec la Révolution."};
+  const far=shuffle(D.map((_,k)=>k).filter(k=>Math.abs(D[k].y-x.y)>=1));
+  const j=Math.random()<.6?near(i,1,k=>Math.abs(D[k].y-x.y)>=1)[0]:far[0];
+  const first=x.y<D[j].y?i:j;
+  return{i,ask:"Avant ou après ?",prompt:"Lequel est arrivé en premier ?",opts:shuffle([i,j]).map(k=>({l:D[k].e,ok:k===first})),pair:[i,j]};
+}
+
+let G=null;
+function start(mode,pool){
+  clearInterval(factTimer);
+  G={mode,pool,n:0,res:[],combo:0,used:new Set(),missed:[],xp0:S.xp,badges0:BADGES.filter(b=>b.ok(S)).map(b=>b.id)};
+  show("play");next();
+}
+function next(){
+  clearTimeout(G.auto);
+  if(G.n>=S.len)return finish();
+  G.q=makeQ(G.mode,G.pool,G.used);G.locked=false;
+  $("ask").textContent=G.q.ask;$("prompt").textContent=fmt(G.q.prompt);
+  $("qBox").classList.remove("pop");void $("qBox").offsetWidth;$("qBox").classList.add("pop");
+  $("opts").innerHTML="";
+  G.q.opts.forEach((o,k)=>{
+    const b=document.createElement("button");b.className="opt";b.id="opt"+k;b.style.setProperty("--d",k);
+    b.innerHTML=`<kbd>${k+1}</kbd><span></span>`;b.querySelector("span").textContent=fmt(o.l);
+    b.onclick=()=>answer(k);$("opts").appendChild(b);
+  });
+  $("combo").textContent="";$("fb").hidden=true;drawBar();$("xpPlay").textContent=S.xp+" XP";
+}
+function drawBar(){
+  $("bar").innerHTML=Array.from({length:S.len},(_,k)=>`<span class="${k<G.res.length?(G.res[k]?"ok":"ko"):k===G.n?"now":""}"></span>`).join("");
+}
+function answer(k){
+  if(G.locked)return;G.locked=true;
+  const q=G.q,o=q.opts[k],ok=!!o.ok,btns=[...$("opts").children];
+  btns.forEach((b,j)=>{b.disabled=true;if(q.opts[j].ok)b.classList.add("ok");else if(j===k)b.classList.add("ko");else b.classList.add("dim")});
+  const x=D[q.i],L0=lvl(S.xp);
+  const c=$("combo");c.classList.remove("go");void c.offsetWidth;
+  if(ok){G.combo++;S.bestCombo=Math.max(S.bestCombo,G.combo);const gain=10*Math.min(G.combo,5);S.xp+=gain;S.m[q.i]=Math.min(5,M(q.i)+1);
+    c.textContent=G.combo>=2?`Série ×${G.combo}  ·  +${gain} XP`:`+${gain} XP`;c.classList.add("go");beep(true);burst(btns[k]);}
+  else{G.combo=0;S.m[q.i]=Math.max(0,M(q.i)-2);c.textContent="";beep(false);G.missed.push(q.i);}
+  if(lvl(S.xp)>L0){toast(`Niveau ${lvl(S.xp)+1} : tu deviens ${RANKS[lvl(S.xp)]} !`);setTimeout(()=>burst($("xpPlay"),40),100)}
+  save();G.res.push(ok);G.n++;drawBar();$("xpPlay").textContent=S.xp+" XP";
+  const fb=$("fb");fb.className="fb "+(ok?"ok":"ko");
+  const last=G.n>=S.len;
+  fb.innerHTML=`<strong></strong><div class="line"></div><div class="tip"><svg class="ic"><use href="#i-bulb"/></svg><span></span></div>`+
+    (ok?`<div class="timer"><i></i></div>`:"")+`<button class="cta" id="nextBtn">${last?"Voir mon score":"Suivant"}</button>`;
+  fb.querySelector("strong").textContent=ok?YAY[Math.random()*YAY.length|0]:SOFT[Math.random()*SOFT.length|0];
+  fb.querySelector(".line").textContent=fmt(q.pair?q.pair.slice().sort((a,b)=>D[a].y-D[b].y).map(p=>`${D[p].e} (${D[p].d})`).join("  →  "):`${x.e} → ${x.d} · ${x.s} siècle · ${x.p}`);
+  fb.querySelector(".tip span").textContent=fmt(q.extra||x.t);
+  fb.hidden=false;$("nextBtn").onclick=next;
+  if(ok)G.auto=setTimeout(()=>{if(G&&G.locked&&!$("play").hidden)next()},2400);
+  $("nextBtn").focus({preventScroll:true});
+  fb.scrollIntoView({block:"nearest",behavior:reduced()?"auto":"smooth"});
+}
+function finish(){
+  clearTimeout(G.auto);
+  const good=G.res.filter(Boolean).length,r=good/S.len;
+  S.games++;if(r===1)S.perfect++;
+  const today=dayKey();
+  if(S.lastDay!==today){S.streak=S.lastDay===dayKey(-1)?S.streak+1:1;S.lastDay=today}
+  if(S.today!==today){S.today=today;S.todayGames=0}
+  S.todayGames++;save();
+
+  const n=r>=1?3:r>=.7?2:r>=.4?1:0;
+  $("endStars").innerHTML=[0,1,2].map(k=>`<svg class="${k<n?"on":""}" style="animation-delay:${200+k*180}ms"><use href="#i-star"/></svg>`).join("");
+  $("endMsg").textContent=r>=1?"Sans faute, incroyable !":r>=.7?"Super partie !":r>=.4?"Ça avance, continue !":"Chaque essai compte. On en refait une ?";
+  countUp($("endScore"),good,`/${S.len}`);
+  const gained=S.xp-G.xp0;
+  $("endGain").textContent=`+${gained} XP · ${RANKS[lvl(S.xp)]}`+(S.todayGames===GOAL?" · Objectif du jour atteint !":"");
+  const fresh=BADGES.filter(b=>b.ok(S)&&!G.badges0.includes(b.id));
+  $("newBadges").innerHTML=fresh.map(b=>`<div class="bdg on"><div class="md"><svg class="ic"><use href="#${b.ic}"/></svg></div><b>Nouveau trophée</b><small>${b.n}</small></div>`).join("");
+  const miss=[...new Set(G.missed)];
+  $("review").innerHTML=miss.length?`<div class="eyebrow" style="background:none;padding:6px 0 0">À revoir</div>`+miss.map(i=>`<div><b>${esc(fmt(D[i].e))}</b> : ${esc(fmt(D[i].d))}</div>`).join(""):"";
+  show("end");
+  if(r>=.7||fresh.length)for(let k=0;k<4;k++)setTimeout(()=>burst($("endScore"),24),300+k*220);
+}
+function countUp(el,to,suffix){
+  if(reduced()){el.textContent=to+suffix;return}
+  let v=0;el.textContent="0"+suffix;const step=()=>{el.textContent=v+suffix;if(v++<to)setTimeout(step,90)};setTimeout(step,250);
+}
+
+/* ---------- effets ---------- */
+function burst(el,count=18){
+  if(reduced()||!el)return;
+  const r=el.getBoundingClientRect(),cols=["#19a56c","#ff6b5a","#6a4bff","#f5b335","#ff5a7a"];
+  for(let k=0;k<count;k++){const p=document.createElement("div");p.className="burst";
+    p.style.left=r.left+r.width/2+"px";p.style.top=r.top+r.height/2+"px";p.style.background=cols[k%cols.length];
+    const a=Math.random()*Math.PI*2,d=70+Math.random()*120;p.style.setProperty("--x",Math.cos(a)*d+"px");p.style.setProperty("--y",Math.sin(a)*d-30+"px");
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1050);}
+}
+let tt=null;
+function toast(t){$("toastTxt").textContent=t;$("toast").classList.add("show");clearTimeout(tt);tt=setTimeout(()=>$("toast").classList.remove("show"),3200)}
+let AC=null;
+function beep(ok){
+  try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const t=AC.currentTime;
+    (ok?[660,880]:[220]).forEach((f,k)=>{const o=AC.createOscillator(),g=AC.createGain();o.type="sine";o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t+k*.09);g.gain.exponentialRampToValueAtTime(.15,t+k*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+k*.09+.18);
+      o.connect(g).connect(AC.destination);o.start(t+k*.09);o.stop(t+k*.09+.2)});}catch(e){}
+}
+
+/* ---------- cartes ---------- */
+let ci=0;
+function drawCard(){
+  const x=D[ci];$("flash").classList.remove("flip");
+  $("cFront").textContent=fmt(x.e);$("cBack").textContent=fmt(x.d);$("cBack2").textContent=fmt(`${x.s} siècle · ${x.p}`);$("cTip").textContent=fmt(x.t);
+  $("cardNum").textContent=`${ci+1} / ${D.length}`;
+}
+function openCards(i){clearInterval(factTimer);ci=i||0;drawCard();show("cards")}
+
+/* ---------- intro ---------- */
+function openIntro(){$("intro").hidden=false;$("nameIn").value=S.name||"";setTimeout(()=>$("nameIn").focus(),400)}
+$("introForm").addEventListener("submit",e=>{e.preventDefault();S.name=$("nameIn").value.trim().slice(0,20);S.seen=1;save();$("intro").hidden=true;renderHome()});
+
+/* ---------- événements ---------- */
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>start(b.dataset.mode));
+$("bigPlay").onclick=()=>start("mix");
+$("mWeak").onclick=()=>{const pool=D.map((_,i)=>i).sort((a,b)=>M(a)-M(b)).slice(0,6);start("mix",pool)};
+$("mCards").onclick=()=>openCards(0);
+$("len5").onclick=()=>{S.len=5;save();renderHome()};
+$("len10").onclick=()=>{S.len=10;save();renderHome()};
+$("quit").onclick=()=>{clearTimeout(G&&G.auto);renderHome()};
+$("again").onclick=()=>start(G.mode,G.pool);
+$("toHome").onclick=renderHome;
+$("cardsQuit").onclick=renderHome;
+$("flash").onclick=()=>$("flash").classList.toggle("flip");
+$("cNext").onclick=()=>{ci=(ci+1)%D.length;drawCard()};
+$("cPrev").onclick=()=>{ci=(ci-1+D.length)%D.length;drawCard()};
+$("rename").onclick=openIntro;
+$("reset").onclick=()=>{$("confirmReset").hidden=false};
+$("resetNo").onclick=()=>{$("confirmReset").hidden=true};
+$("resetYes").onclick=()=>{const name=S.name;S={m:{},xp:0,name,games:0,perfect:0,bestCombo:0,streak:0,lastDay:"",today:"",todayGames:0,len:S.len,seen:1};save();$("confirmReset").hidden=true;renderHome()};
+document.addEventListener("keydown",e=>{
+  if(!$("intro").hidden)return;
+  if(!$("play").hidden){
+    if(/^[1-4]$/.test(e.key)&&!G.locked){const b=$("opt"+(e.key-1));if(b)b.click()}
+    else if(e.key==="Enter"&&G.locked){e.preventDefault();next()}
+  }else if(!$("cards").hidden){
+    if(e.key===" "||e.key==="Enter"){e.preventDefault();$("flash").click()}
+    if(e.key==="ArrowRight")$("cNext").click();if(e.key==="ArrowLeft")$("cPrev").click();
+  }
+});
+
+renderHome();
+if(!S.seen)openIntro();
+</script>
+
+</body>
+</html>

@@ -604,6 +604,13 @@ const BADGES=[
  {id:"all",n:"Reine de la frise",h:"Les 19 dates maîtrisées",ic:"i-crown",ok:s=>mastered()>=19}
 ];
 const KEY="chronoquete-4e-v1";
+/* Messages perso quand le prénom est Gaby */
+const isGaby=()=>/^gaby/.test((S.name||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim());
+const pick=a=>a[Math.random()*a.length|0];
+const YAY_G=["Trop forte ma Gaby !","Bravo ma Gaby !","T’es une boss, Gaby !","Fière de toi, Gaby !","Incroyable ma Gaby !","Gaby en feu !","Personne t’arrête, Gaby !","Ça c’est ma Gaby !"];
+const SOFT_G=["C’est rien ma Gaby, retiens ça :","Pas grave ma Gaby, la voilà :","T’inquiète Gaby, tu vas l’avoir :","Courage ma Gaby, regarde :","C’est rien, t’es la meilleure Gaby :"];
+const yay=()=>pick(isGaby()?YAY_G:YAY);
+const soft=()=>pick(isGaby()?SOFT_G:SOFT);
 
 let S={m:{},xp:0};
 try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r&&r.m)S=r}catch(e){}
@@ -784,7 +791,7 @@ function answer(k){
   const last=G.n>=S.len;
   fb.innerHTML=`<strong></strong><div class="line"></div><div class="tip"><svg class="ic"><use href="#i-bulb"/></svg><span></span></div>`+
     (ok?`<div class="timer"><i></i></div>`:"")+`<button class="cta" id="nextBtn">${last?"Voir mon score":"Suivant"}</button>`;
-  fb.querySelector("strong").textContent=ok?YAY[Math.random()*YAY.length|0]:SOFT[Math.random()*SOFT.length|0];
+  fb.querySelector("strong").textContent=ok?yay():soft();
   fb.querySelector(".line").textContent=fmt(q.pair?q.pair.slice().sort((a,b)=>D[a].y-D[b].y).map(p=>`${D[p].e} (${D[p].d})`).join("  →  "):`${x.e} → ${x.d} · ${x.s} siècle · ${x.p}`);
   fb.querySelector(".tip span").textContent=fmt(q.extra||x.t);
   fb.hidden=false;$("nextBtn").onclick=next;
@@ -800,7 +807,7 @@ function finish(){
 
   const n=r>=1?3:r>=.7?2:r>=.4?1:0;
   $("endStars").innerHTML=[0,1,2].map(k=>`<svg class="${k<n?"on":""}" style="animation-delay:${200+k*180}ms"><use href="#i-star"/></svg>`).join("");
-  $("endMsg").textContent=r>=1?"Sans faute, incroyable !":r>=.7?"Super partie !":r>=.4?"Ça avance, continue !":"Chaque essai compte. On en refait une ?";
+  $("endMsg").textContent=isGaby()?(r>=1?"Sans faute ! Trop forte ma Gaby !":r>=.7?"Super partie ma Gaby, je suis fier de toi !":r>=.4?"Ça avance ma Gaby, continue comme ça !":"C’est rien ma Gaby, la prochaine sera meilleure !"):(r>=1?"Sans faute, incroyable !":r>=.7?"Super partie !":r>=.4?"Ça avance, continue !":"Chaque essai compte. On en refait une ?");
   countUp($("endScore"),good,`/${S.len}`);
   const gained=S.xp-G.xp0;
   $("endGain").textContent=`+${gained} XP · ${RANKS[lvl(S.xp)]}`+(S.todayGames===GOAL?" · Objectif du jour atteint !":"");
@@ -887,7 +894,7 @@ function memoEnd(){
   const bonus=MG.moves<=9?40:MG.moves<=12?20:0;S.xp+=bonus;S.memoDone=(S.memoDone||0)+1;recordGame();
   $("mGrid").hidden=true;
   endPanel($("mEnd"),{big:`${MG.moves} coups`,stars:MG.moves<=9?3:MG.moves<=12?2:1,
-    msg:MG.moves<=9?"Mémoire d’éléphant !":MG.moves<=12?"Très bien joué !":"Toutes trouvées, bravo !",
+    msg:isGaby()?pick(["Trop forte ma Gaby !","Quelle mémoire, Gaby !","Bravo ma Gaby !"]):MG.moves<=9?"Mémoire d’éléphant !":MG.moves<=12?"Très bien joué !":"Toutes trouvées, bravo !",
     gain:`+${S.xp-MG.xp0} XP`+(bonus?` (dont ${bonus} de bonus rapidité)`:""),again:memoStart});
 }
 
@@ -909,12 +916,12 @@ function orderTap(b){
   if(i===OG.sorted[OG.step]){
     const s=$("slot"+OG.step);s.className="slot fill";s.innerHTML=`<b>${esc(D[i].yr)}</b>${esc(fmt(D[i].n))}`;
     b.remove();if(OG.first){S.m[i]=Math.min(5,M(i)+1);S.xp+=15}OG.first=true;OG.step++;save();beep(true);burst(s,10);
-    $("oMsg").textContent=OG.step<OG.sorted.length?`${YAY[Math.random()*YAY.length|0]} Et ensuite ?`:"";
+    $("oMsg").textContent=OG.step<OG.sorted.length?`${yay()} Et ensuite ?`:"";
     if(OG.step===OG.sorted.length)setTimeout(orderEnd,700);
   }else{
     OG.err++;OG.first=false;OG.missed.add(OG.sorted[OG.step]);S.m[i]=Math.max(0,M(i)-1);save();beep(false);
     b.classList.remove("ko");void b.offsetWidth;b.classList.add("ko");setTimeout(()=>b.classList.remove("ko"),600);
-    $("oMsg").textContent=`Pas encore ! ${fmt(D[i].n)}, c’est ${fmt(D[i].d)}.`;
+    $("oMsg").textContent=`${isGaby()?"C’est rien ma Gaby !":"Pas encore !"} ${fmt(D[i].n)}, c’est ${fmt(D[i].d)}.`;
     $("oErr").textContent=`${OG.err} erreur${OG.err>1?"s":""}`;
   }
 }
@@ -922,7 +929,7 @@ function orderEnd(){
   if(OG.err===0)S.orderPerfect=(S.orderPerfect||0)+1;recordGame();
   $("oCards").hidden=true;
   endPanel($("oEnd"),{big:OG.err?`${OG.err} erreur${OG.err>1?"s":""}`:"5/5",stars:OG.err===0?3:OG.err<=2?2:1,
-    msg:OG.err===0?"Frise parfaite !":OG.err<=2?"Presque parfait !":"C’est rangé, bravo !",
+    msg:isGaby()?(OG.err===0?"Frise parfaite, trop forte ma Gaby !":"Bien joué ma Gaby !"):OG.err===0?"Frise parfaite !":OG.err<=2?"Presque parfait !":"C’est rangé, bravo !",
     gain:`+${S.xp-OG.xp0} XP`,review:reviewList([...OG.missed]),again:orderStart});
 }
 
@@ -1111,11 +1118,11 @@ function gatePass(o){
     emit(p.x,p.y-p.u*1.4,36,["#7dffc4","#ffc757","#ff8a5b","#8f7dff","#ffffff"],300,4,420,1);
     R.rings.push({x:p.x,y:p.y-p.u,life:.55,max:.55,c:"125,255,196"});
     R.fx.push({t:R.combo>=2?`+${gain}  ×${R.combo}`:`+${gain}`,x:R.lane,y:.3,life:1.1,c:"#7dffc4"});
-    $("rq").className="rq ok";$("rAsk").textContent=YAY[Math.random()*YAY.length|0];
+    $("rq").className="rq ok";$("rAsk").textContent=yay();
     if(lvl(S.xp)>L0)toast(`Niveau ${lvl(S.xp)+1} : tu deviens ${RANKS[lvl(S.xp)]} !`);
   }else{
     R.combo=0;S.m[q.i]=Math.max(0,M(q.i)-2);R.missed.push(q.i);
-    $("rq").className="rq ko";$("rAsk").textContent="Raté, c’était :";$("rPrompt").textContent=fmt(`${q.prompt} → ${q.opts[q.ok]}`);
+    $("rq").className="rq ko";$("rAsk").textContent=(isGaby()?pick(["C’est rien ma Gaby, c’était :","Pas grave ma Gaby, c’était :","T’inquiète Gaby, c’était :"]):"Raté, c’était :");$("rPrompt").textContent=fmt(`${q.prompt} → ${q.opts[q.ok]}`);
     loseHeart();
   }
   save();R.free=2.4;R.obsT=.7;rHud(ok);
@@ -1132,7 +1139,7 @@ function rGameOver(){
   R.over=true;SFX.stopLoop();const prev=S.bestRun||0,rec=R.score>prev;S.bestRun=Math.max(prev,R.score);S.xp+=R.coins;recordGame();
   rec&&R.score>0?SFX.record():SFX.over();
   const miss=[...new Set(R.missed)];
-  $("rOver").innerHTML=`<div class="box"><div class="eyebrow" style="color:#d2c9ff">${rec?"Nouveau record !":"Partie terminée"}</div><div class="score">${R.score}</div><div class="muted">points · ton record : ${S.bestRun}</div><div class="gain">${R.good}/${R.total} bonnes portes · ${R.coins} pièces · +${S.xp-R.xp0} XP</div>${reviewList(miss)}<button class="play" id="rAgain" style="margin-top:4px"><svg class="ic"><use href="#i-play"/></svg>Rejouer</button><button class="ghost" id="rHome" style="color:#d2c9ff">Retour à l’accueil</button></div>`;
+  $("rOver").innerHTML=`<div class="box"><div class="eyebrow" style="color:#d2c9ff">${rec?(isGaby()?"Nouveau record ma Gaby !":"Nouveau record !"):(isGaby()?"Bien couru ma Gaby !":"Partie terminée")}</div><div class="score">${R.score}</div><div class="muted">points · ton record : ${S.bestRun}</div><div class="gain">${R.good}/${R.total} bonnes portes · ${R.coins} pièces · +${S.xp-R.xp0} XP</div>${reviewList(miss)}<button class="play" id="rAgain" style="margin-top:4px"><svg class="ic"><use href="#i-play"/></svg>Rejouer</button><button class="ghost" id="rHome" style="color:#d2c9ff">Retour à l’accueil</button></div>`;
   $("rOver").hidden=false;$("rAgain").onclick=runnerStart;$("rHome").onclick=renderHome;$("rBest").textContent=`Record : ${S.bestRun}`;
   if(rec)setTimeout(()=>burst($("rOver").querySelector(".score"),30),200);
 }
